@@ -7,7 +7,7 @@ import viteLogo from "/vite.svg";
 import "./App.css";
 import WelcomeMessage from "./components/WelcomeMessage";
 import UserProfile from './components/UserProfile';
-import UserContext from './contexts/UserContext';
+import UserContext from './components/UserContext';
 function App() {
   const [count, setCount] = useState(0);
 
