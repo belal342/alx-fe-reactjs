@@ -7,27 +7,40 @@ import viteLogo from "/vite.svg";
 import "./App.css";
 import WelcomeMessage from "./components/WelcomeMessage";
 import UserProfile from './components/UserProfile';
-
+import UserContext from './contexts/UserContext';
 function App() {
   const [count, setCount] = useState(0);
 
+    const userData = {
+    users: [
+      {
+        name: "Alice",
+        age: "25",
+        bio: "Loves hiking and photography"
+      },
+      {
+        name: "Bob",
+        age: "30",
+        bio: "Passionate about cooking and travel"
+      } 
+] 
+    
+  };
   return (
-    <>
+    <UserContext.Provider value={userData}>
       <WelcomeMessage />
       <Header />
       <MainContent />
       {/* User Profile Section */}
       <div className="profiles-container">
-        <UserProfile 
-          name="Alice" 
-          age="25" 
-          bio="Loves hiking and photography" 
-        />
-        <UserProfile
-          name="Bob"
-          age="30"
-          bio="Passionate about cooking and travel"
-        />
+        {userData.users.map((user, index) => (
+          <UserProfile 
+            key={index}
+            name={user.name}
+            age={user.age}
+            bio={user.bio}
+          />
+        ))}
       </div>
       <div>
         <a href="https://vite.dev" target="_blank">
@@ -50,7 +63,7 @@ function App() {
         Click on the Vite and React logos to learn more
       </p>
       <Footer />
-    </>
+    </UserContext.Provider>
   );
 }
 
