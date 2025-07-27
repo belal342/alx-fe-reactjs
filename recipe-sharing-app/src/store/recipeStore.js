@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
+import { persist } from 'zustand/middleware'
 
 const useRecipeStore = create(
   persist(
@@ -7,78 +7,55 @@ const useRecipeStore = create(
       recipes: [],
       
       // Add a new recipe
-      addRecipe: (newRecipe) => 
-        set((state) => ({
-          recipes: [...state.recipes, {
-            ...newRecipe,
-            id: Date.now(),
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }]
-        })),
+      addRecipe: (recipe) => set((state) => ({
+        recipes: [...state.recipes, {
+          ...recipe,
+          id: Date.now(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }]
+      })),
       
-      // Delete a recipe by ID
-      deleteRecipe: (recipeId) =>
-        set((state) => ({
-          recipes: state.recipes.filter((recipe) => recipe.id !== recipeId)
-        })),
+      // Delete a recipe
+      deleteRecipe: (id) => set((state) => ({
+        recipes: state.recipes.filter(recipe => recipe.id !== id)
+      })),
       
-      // Update an existing recipe
-      updateRecipe: (updatedRecipe) =>
-        set((state) => ({
-          recipes: state.recipes.map((recipe) =>
-            recipe.id === updatedRecipe.id 
-              ? { 
-                  ...updatedRecipe, 
-                  updatedAt: new Date().toISOString() 
-                } 
-              : recipe
-          )
-        })),
-      
-      // Get a single recipe by ID
-      getRecipe: (recipeId) => {
-        return get().recipes.find((recipe) => recipe.id === recipeId)
-      },
-      
-      // Search recipes by title or description
-      searchRecipes: (query) => {
-        const lowerCaseQuery = query.toLowerCase()
-        return get().recipes.filter(
-          (recipe) =>
-            recipe.title.toLowerCase().includes(lowerCaseQuery) ||
-            recipe.description.toLowerCase().includes(lowerCaseQuery)
+      // Update a recipe
+      updateRecipe: (updatedRecipe) => set((state) => ({
+        recipes: state.recipes.map(recipe => 
+          recipe.id === updatedRecipe.id 
+            ? { ...updatedRecipe, updatedAt: new Date().toISOString() } 
+            : recipe
         )
-      },
+      })),
       
-      // Clear all recipes
-      clearRecipes: () => set({ recipes: [] }),
+      // Get single recipe
+      getRecipe: (id) => get().recipes.find(recipe => recipe.id === id),
       
-      // Initialize with sample data
-      initializeSampleRecipes: () => {
-        const sampleRecipes = [
+      // Initialize sample data
+      initSampleData: () => set({
+        recipes: [
           {
             id: 1,
             title: "Classic Margherita Pizza",
-            description: "Simple and delicious pizza with tomato sauce, fresh mozzarella, and basil.",
+            description: "Tomato sauce, mozzarella, and basil",
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
           },
           {
             id: 2,
             title: "Chocolate Chip Cookies",
-            description: "Soft and chewy cookies with melty chocolate chips.",
+            description: "Classic homemade cookies",
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
           }
         ]
-        set({ recipes: sampleRecipes })
-      }
+      })
     }),
     {
-      name: 'recipe-storage', // unique name for localStorage key
-      storage: createJSONStorage(() => localStorage), // use localStorage
-      partialize: (state) => ({ recipes: state.recipes }), // persist only recipes
+      name: 'recipe-store',
+      storage: localStorage
     }
   )
 )
