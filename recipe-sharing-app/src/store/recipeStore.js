@@ -5,65 +5,114 @@ const useRecipeStore = create(
   persist(
     (set, get) => ({
       recipes: [],
-      
-      // Action to completely replace the recipes array
-      setRecipes: (newRecipes) => set({ recipes: newRecipes }),
-      
-      // Add a new recipe
-      addRecipe: (newRecipe) => 
-        set((state) => ({
-          recipes: [...state.recipes, {
-            ...newRecipe,
-            id: Date.now(),
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }]
-        })),
-      
-      // Delete a recipe by ID
-      deleteRecipe: (recipeId) =>
-        set((state) => ({
-          recipes: state.recipes.filter((recipe) => recipe.id !== recipeId)
-        })),
-      
-      // Update an existing recipe
-      updateRecipe: (updatedRecipe) =>
-        set((state) => ({
-          recipes: state.recipes.map((recipe) =>
-            recipe.id === updatedRecipe.id 
-              ? { 
-                  ...updatedRecipe, 
-                  updatedAt: new Date().toISOString() 
-                } 
-              : recipe
-          )
-        })),
-      
-      // Get a single recipe by ID
-      getRecipe: (recipeId) => {
-        return get().recipes.find((recipe) => recipe.id === recipeId)
+      searchTerm: '',
+      filters: {
+        ingredients: [],
+        maxPrepTime: null,
+        difficulty: null
       },
-      
-      // Search recipes by title or description
-      searchRecipes: (query) => {
-        const lowerCaseQuery = query.toLowerCase()
-        return get().recipes.filter(
-          (recipe) =>
-            recipe.title.toLowerCase().includes(lowerCaseQuery) ||
-            recipe.description.toLowerCase().includes(lowerCaseQuery)
-        )
+
+      // Search and Filter Actions
+      setSearchTerm: function(term) { set({ searchTerm: term }) },
+      setFilters: function(newFilters) { 
+        set({ filters: Object.assign({}, get().filters, newFilters) }) 
       },
-      
-      // Clear all recipes
-      clearRecipes: () => set({ recipes: [] }),
-      
+      resetFilters: function() { 
+        set({ 
+          searchTerm: '',
+          filters: {
+            ingredients: [],
+            maxPrepTime: null,
+            difficulty: null
+          }
+        }) 
+      },
+
+      // Computed filtered recipes
+      filteredRecipes: function() {
+        const { recipes, searchTerm, filters } = get()
+        const lowerCaseTerm = searchTerm.toLowerCase()
+        
+        return recipes.filter(function(recipe) {
+          // Search term matching
+          const matchesSearch = searchTerm === '' || 
+            recipe.title.toLowerCase().includes(lowerCaseTerm) ||
+            recipe.description.toLowerCase().includes(lowerCaseTerm) ||
+            (recipe.ingredients && recipe.ingredients.some(function(ing) { 
+              return ing.toLowerCase().includes(lowerCaseTerm)
+            }))
+
+          // Filter matching
+          const matchesIngredients = filters.ingredients.length === 0 || 
+            (recipe.ingredients && recipe.ingredients.some(function(ing) { 
+              return filters.ingredients.some(function(filterIng) { 
+                return ing.toLowerCase().includes(filterIng.toLowerCase())
+              })
+            }))
+
+          const matchesPrepTime = !filters.maxPrepTime || 
+            (recipe.prepTime && recipe.prepTime <= filters.maxPrepTime)
+
+          const matchesDifficulty = !filters.difficulty || 
+            recipe.difficulty === filters.difficulty
+
+          return matchesSearch && matchesIngredients && matchesPrepTime && matchesDifficulty
+        })
+      },
+
+      // Recipe CRUD Operations
+      setRecipes: function(newRecipes) { set({ recipes: newRecipes }) },
+      addRecipe: function(newRecipe) {
+        set(function(state) {
+          return {
+            recipes: [...state.recipes, {
+              ...newRecipe,
+              id: Date.now(),
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString()
+            }]
+          }
+        })
+      },
+      deleteRecipe: function(recipeId) {
+        set(function(state) {
+          return {
+            recipes: state.recipes.filter(function(recipe) { 
+              return recipe.id !== recipeId 
+            })
+          }
+        })
+      },
+      updateRecipe: function(updatedRecipe) {
+        set(function(state) {
+          return {
+            recipes: state.recipes.map(function(recipe) {
+              return recipe.id === updatedRecipe.id 
+                ? { 
+                    ...updatedRecipe, 
+                    updatedAt: new Date().toISOString() 
+                  } 
+                : recipe
+            })
+          }
+        })
+      },
+      getRecipe: function(recipeId) {
+        return get().recipes.find(function(recipe) { 
+          return recipe.id === recipeId 
+        })
+      },
+
       // Initialize with sample data
-      initializeSampleRecipes: () => {
+      initializeSampleRecipes: function() {
         const sampleRecipes = [
           {
             id: 1,
             title: "Classic Margherita Pizza",
             description: "Simple and delicious pizza with tomato sauce, fresh mozzarella, and basil.",
+            ingredients: ["pizza dough", "tomato sauce", "fresh mozzarella", "basil leaves"],
+            prepTime: 30,
+            difficulty: "Medium",
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
           },
@@ -71,6 +120,9 @@ const useRecipeStore = create(
             id: 2,
             title: "Chocolate Chip Cookies",
             description: "Soft and chewy cookies with melty chocolate chips.",
+            ingredients: ["flour", "butter", "sugar", "eggs", "chocolate chips"],
+            prepTime: 45,
+            difficulty: "Easy",
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
           }
@@ -79,9 +131,9 @@ const useRecipeStore = create(
       }
     }),
     {
-      name: 'recipe-storage', // unique name for localStorage key
-      storage: createJSONStorage(() => localStorage), // use localStorage
-      partialize: (state) => ({ recipes: state.recipes }), // persist only recipes
+      name: 'recipe-storage',
+      storage: createJSONStorage(function() { return localStorage }),
+      partialize: function(state) { return { recipes: state.recipes } }
     }
   )
 )
