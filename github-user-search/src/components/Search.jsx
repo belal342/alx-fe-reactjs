@@ -43,7 +43,7 @@ const Search = () => {
 
       {error && (
         <div className="error">
-          <p>Looks like we can't find the user</p> {/* Exact error message in display */}
+          <p>Looks like we cant find the user</p> {/* Exact error message in display */}
         </div>
       )}
 
