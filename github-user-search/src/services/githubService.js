@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const BASE_URL = 'https://api.github.com';
+const SEARCH_USERS_ENDPOINT = `${BASE_URL}/search/users?q=`;
 
 // Fetch detailed data for a single user
 const fetchUserData = async (username) => {
@@ -25,7 +26,7 @@ const fetchUserData = async (username) => {
 // Search for multiple users with advanced filters
 const searchUsers = async (searchParams, page = 1, perPage = 10) => {
   try {
-    // Construct query parameters with explicit minRepos handling
+    // Construct query parameters with minRepos handling
     const queryParts = [];
     
     if (searchParams.username) queryParts.push(`${searchParams.username} in:login`);
@@ -36,12 +37,9 @@ const searchUsers = async (searchParams, page = 1, perPage = 10) => {
 
     const query = queryParts.join(' ');
 
-    // Explicit GitHub search endpoint with all parameters
-    const searchEndpoint = `${BASE_URL}/search/users?q=${encodeURIComponent(query)}&page=${page}&per_page=${perPage}`;
-    
-    // Make the initial search request
+    // Make the search request using the explicit endpoint
     const searchResponse = await axios.get(
-      searchEndpoint,
+      `${SEARCH_USERS_ENDPOINT}${encodeURIComponent(query)}&page=${page}&per_page=${perPage}`,
       {
         headers: {
           Accept: 'application/vnd.github.v3+json',
