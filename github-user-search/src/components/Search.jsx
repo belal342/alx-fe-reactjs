@@ -60,7 +60,7 @@ const Search = () => {
     } catch (err) {
       setError(err.response?.status === 403 
         ? 'API rate limit exceeded. Please try again later.' 
-        : "Looks like we cant find users matching these criteria");
+        : "Looks like we cant find the user");
     } finally {
       setLoading(false);
     }
