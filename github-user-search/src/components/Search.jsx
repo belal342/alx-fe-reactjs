@@ -1,55 +1,24 @@
 import { useState } from 'react';
-import { searchUsers } from '../services/githubApi';
+import { fetchUserData } from '../services/githubApi';
 
 const Search = () => {
-  const [searchParams, setSearchParams] = useState({
-    username: '',
-    location: '',
-    reposMin: '',
-    language: '',
-    followersMin: ''
-  });
-  const [users, setUsers] = useState([]);
+  const [username, setUsername] = useState('');
+  const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [totalResults, setTotalResults] = useState(0);
-  const [page, setPage] = useState(1);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setSearchParams(prev => ({ ...prev, [name]: value }));
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setPage(1);
-    performSearch(1);
-  };
+    if (!username.trim()) return;
 
-  const loadMore = () => {
-    const nextPage = page + 1;
-    setPage(nextPage);
-    performSearch(nextPage);
-  };
-
-  const performSearch = async (pageNumber) => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
-      
-      const data = await searchUsers(searchParams, pageNumber);
-      
-      if (pageNumber === 1) {
-        setUsers(data.items);
-      } else {
-        setUsers(prev => [...prev, ...data.items]);
-      }
-      
-      setTotalResults(data.total_count);
+      const data = await fetchUserData(username);
+      setUserData(data);
     } catch (err) {
-      setError(err.response?.status === 403 
-        ? 'API rate limit exceeded. Please try again later.' 
-        : "Looks like we can't find users matching these criteria");
+      setError("Looks like we can't find the user");
+      setUserData(null);
     } finally {
       setLoading(false);
     }
@@ -60,78 +29,30 @@ const Search = () => {
       <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">GitHub User Search</h1>
       
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-grow">
             <label className="block text-gray-700 mb-2" htmlFor="username">
-              Username
+              GitHub Username
             </label>
             <input
               type="text"
               id="username"
               name="username"
-              value={searchParams.username}
-              onChange={handleInputChange}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               placeholder="e.g. octocat"
               className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          
-          <div>
-            <label className="block text-gray-700 mb-2" htmlFor="location">
-              Location
-            </label>
-            <input
-              type="text"
-              id="location"
-              name="location"
-              value={searchParams.location}
-              onChange={handleInputChange}
-              placeholder="e.g. San Francisco"
-              className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+          <div className="flex items-end">
+            <button
+              type="submit"
+              disabled={loading}
+              className={`px-6 py-2 h-[42px] rounded-md text-white font-medium ${loading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'} transition-colors`}
+            >
+              {loading ? 'Searching...' : 'Search'}
+            </button>
           </div>
-          
-          <div>
-            <label className="block text-gray-700 mb-2" htmlFor="reposMin">
-              Minimum Repositories
-            </label>
-            <input
-              type="number"
-              id="reposMin"
-              name="reposMin"
-              value={searchParams.reposMin}
-              onChange={handleInputChange}
-              placeholder="e.g. 10"
-              min="0"
-              className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-gray-700 mb-2" htmlFor="followersMin">
-              Minimum Followers
-            </label>
-            <input
-              type="number"
-              id="followersMin"
-              name="followersMin"
-              value={searchParams.followersMin}
-              onChange={handleInputChange}
-              placeholder="e.g. 100"
-              min="0"
-              className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-        
-        <div className="flex justify-center">
-          <button
-            type="submit"
-            disabled={loading}
-            className={`px-6 py-2 rounded-md text-white font-medium ${loading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'} transition-colors`}
-          >
-            {loading ? 'Searching...' : 'Search'}
-          </button>
         </div>
       </form>
 
@@ -141,51 +62,69 @@ const Search = () => {
         </div>
       )}
 
-      {users.length > 0 && (
-        <div className="mb-4">
-          <p className="text-gray-600">Showing {users.length} of {totalResults} results</p>
+      {loading && (
+        <div className="text-center py-4">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {users.map(user => (
-          <div key={user.id} className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow">
-            <div className="flex items-center mb-3">
-              <img 
-                src={user.avatar_url} 
-                alt={user.login} 
-                className="w-16 h-16 rounded-full mr-4"
+      {userData && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="flex-shrink-0">
+              <img
+                src={userData.avatar_url}
+                alt={userData.login}
+                className="w-32 h-32 rounded-full"
               />
-              <div>
-                <h3 className="font-semibold text-lg text-gray-800">{user.login}</h3>
-                <a 
-                  href={user.html_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-blue-600 text-sm hover:underline"
-                >
-                  View Profile
-                </a>
-              </div>
             </div>
-            <div className="text-sm text-gray-600 space-y-1">
-              {user.location && <p>📍 {user.location}</p>}
-              {user.public_repos !== undefined && <p>📦 Repos: {user.public_repos}</p>}
-              {user.followers !== undefined && <p>👥 Followers: {user.followers}</p>}
+            <div className="flex-grow">
+              <h2 className="text-2xl font-bold text-gray-800">
+                {userData.name || userData.login}
+              </h2>
+              {userData.bio && <p className="text-gray-600 mt-2">{userData.bio}</p>}
+              
+              <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="bg-gray-50 p-3 rounded">
+                  <div className="text-gray-500 text-sm">Repositories</div>
+                  <div className="text-xl font-bold">{userData.public_repos || 0}</div>
+                </div>
+                <div className="bg-gray-50 p-3 rounded">
+                  <div className="text-gray-500 text-sm">Followers</div>
+                  <div className="text-xl font-bold">{userData.followers || 0}</div>
+                </div>
+                <div className="bg-gray-50 p-3 rounded">
+                  <div className="text-gray-500 text-sm">Following</div>
+                  <div className="text-xl font-bold">{userData.following || 0}</div>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                {userData.location && (
+                  <p className="text-gray-600">📍 {userData.location}</p>
+                )}
+                {userData.blog && (
+                  <p className="text-gray-600 mt-1">
+                    🌐 <a href={userData.blog} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{userData.blog}</a>
+                  </p>
+                )}
+                {userData.twitter_username && (
+                  <p className="text-gray-600 mt-1">
+                    🐦 <a href={`https://twitter.com/${userData.twitter_username}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">@{userData.twitter_username}</a>
+                  </p>
+                )}
+              </div>
+
+              <a
+                href={userData.html_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-6 inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              >
+                View GitHub Profile
+              </a>
             </div>
           </div>
-        ))}
-      </div>
-
-      {users.length > 0 && users.length < totalResults && (
-        <div className="flex justify-center mt-6">
-          <button
-            onClick={loadMore}
-            disabled={loading}
-            className={`px-6 py-2 rounded-md text-white font-medium ${loading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'} transition-colors`}
-          >
-            {loading ? 'Loading...' : 'Load More'}
-          </button>
         </div>
       )}
     </div>
