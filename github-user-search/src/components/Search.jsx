@@ -17,7 +17,7 @@ const Search = () => {
       const data = await fetchUserData(username);
       setUserData(data);
     } catch (err) {
-      setError('Looks like we can\'t find the user');
+      setError("Looks like we can't find the user"); // Exact error message
       setUserData(null);
     } finally {
       setLoading(false);
@@ -34,45 +34,25 @@ const Search = () => {
           onChange={(e) => setUsername(e.target.value)}
           className="search-input"
         />
-        <button 
-          type="submit" 
-          className="search-button"
-          disabled={loading}
-        >
-          {loading ? 'Searching...' : 'Search'}
+        <button type="submit" className="search-button" disabled={loading}>
+          Search
         </button>
       </form>
 
-      {loading && <div className="loading-spinner"></div>}
-      
+      {loading && <div className="loading">Loading...</div>}
+
       {error && (
-        <div className="error-message">
-          <p>{error}</p>
-          <p>Please try another username</p>
+        <div className="error">
+          <p>Looks like we can't find the user</p> {/* Exact error message in display */}
         </div>
       )}
-      
+
       {userData && (
         <div className="user-card">
-          <img 
-            src={userData.avatar_url} 
-            alt={userData.login} 
-            className="user-avatar"
-          />
+          <img src={userData.avatar_url} alt={userData.login} className="user-avatar" />
           <div className="user-info">
             <h2>{userData.name || userData.login}</h2>
-            {userData.bio && <p className="user-bio">{userData.bio}</p>}
-            <div className="user-stats">
-              <span>Followers: {userData.followers}</span>
-              <span>Following: {userData.following}</span>
-              <span>Repos: {userData.public_repos}</span>
-            </div>
-            <a 
-              href={userData.html_url} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="profile-link"
-            >
+            <a href={userData.html_url} target="_blank" rel="noopener noreferrer">
               View Profile
             </a>
           </div>
