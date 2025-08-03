@@ -25,20 +25,23 @@ const fetchUserData = async (username) => {
 // Search for multiple users with advanced filters
 const searchUsers = async (searchParams, page = 1, perPage = 10) => {
   try {
-    // Construct query parameters
+    // Construct query parameters with explicit minRepos handling
     const queryParts = [];
     
     if (searchParams.username) queryParts.push(`${searchParams.username} in:login`);
     if (searchParams.location) queryParts.push(`location:${searchParams.location}`);
-    if (searchParams.reposMin) queryParts.push(`repos:>=${searchParams.reposMin}`);
+    if (searchParams.minRepos) queryParts.push(`repos:>=${searchParams.minRepos}`);
     if (searchParams.followersMin) queryParts.push(`followers:>=${searchParams.followersMin}`);
     if (searchParams.language) queryParts.push(`language:${searchParams.language}`);
 
     const query = queryParts.join(' ');
 
+    // Explicit GitHub search endpoint with all parameters
+    const searchEndpoint = `${BASE_URL}/search/users?q=${encodeURIComponent(query)}&page=${page}&per_page=${perPage}`;
+    
     // Make the initial search request
     const searchResponse = await axios.get(
-      `${BASE_URL}/search/users?q=${encodeURIComponent(query)}&page=${page}&per_page=${perPage}`,
+      searchEndpoint,
       {
         headers: {
           Accept: 'application/vnd.github.v3+json',
