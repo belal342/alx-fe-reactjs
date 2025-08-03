@@ -1,27 +1,26 @@
-# Dependency directories
+# Dependencies
 node_modules/
-.npm
-.yarn
 
-# Environment variables
+# Environment files
 .env
 .env.local
-.env.*.local
+.env.development
+.env.production
 
-# Build output
+# Build directories
 dist/
 build/
-.vite/
+.vercel/
+.next/
+out/
+
+# IDE/Editor
+.vscode/
+.idea/
+
+# System files
+.DS_Store
 
 # Logs
 *.log
 npm-debug.log*
-
-# IDE/Editor files
-.idea/
-.vscode/
-*.swp
-.DS_Store
-
-# System files
-Thumbs.db
