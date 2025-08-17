@@ -1,27 +1,26 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import recipeData from '../data.json'; // Import the JSON file directly
 
 export default function HomePage() {
   const [recipes, setRecipes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // In a real app, you would fetch from an API
-    const mockRecipes = [
-      {
-        id: 1,
-        title: "Spaghetti Carbonara",
-        summary: "Classic Italian pasta with eggs, cheese, and bacon",
-        image: "https://images.unsplash.com/photo-1611270633750-86e2c8e8e6c1"
-      },
-      {
-        id: 2,
-        title: "Chicken Tikka Masala",
-        summary: "Creamy Indian-spiced chicken dish",
-        image: "https://images.unsplash.com/photo-1601050690597-df0568f70950"
-      }
-    ];
-    setRecipes(mockRecipes);
+    try {
+      // Using the directly imported data
+      setRecipes(recipeData);
+      setLoading(false);
+    } catch (err) {
+      setError("Failed to load recipes");
+      setLoading(false);
+      console.error("Error loading recipes:", err);
+    }
   }, []);
+
+  if (loading) return <div className="text-center py-8">Loading recipes...</div>;
+  if (error) return <div className="text-center py-8 text-red-500">{error}</div>;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
