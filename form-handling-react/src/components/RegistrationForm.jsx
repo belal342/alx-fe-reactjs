@@ -1,26 +1,28 @@
 import { useState } from 'react';
 
 const RegistrationForm = () => {
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: ''
-  });
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+  const handleUsernameChange = (e) => {
+    setUsername(e.target.value);
+  };
+
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+  };
+
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
   };
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.username) newErrors.username = 'Username is required';
-    if (!formData.email) newErrors.email = 'Email is required';
-    if (!formData.password) newErrors.password = 'Password is required';
+    if (!username) newErrors.username = 'Username is required';
+    if (!email) newErrors.email = 'Email is required';
+    if (!password) newErrors.password = 'Password is required';
     return newErrors;
   };
 
@@ -28,9 +30,14 @@ const RegistrationForm = () => {
     e.preventDefault();
     const formErrors = validateForm();
     if (Object.keys(formErrors).length === 0) {
-      console.log('Form submitted:', formData);
+      console.log('Form submitted:', { username, email, password });
       // Here you would typically make an API call
       alert('Registration successful!');
+      // Reset form
+      setUsername('');
+      setEmail('');
+      setPassword('');
+      setErrors({});
     } else {
       setErrors(formErrors);
     }
@@ -44,8 +51,8 @@ const RegistrationForm = () => {
           type="text"
           id="username"
           name="username"
-          value={formData.username}
-          onChange={handleChange}
+          value={username}
+          onChange={handleUsernameChange}
         />
         {errors.username && <span className="error">{errors.username}</span>}
       </div>
@@ -56,8 +63,8 @@ const RegistrationForm = () => {
           type="email"
           id="email"
           name="email"
-          value={formData.email}
-          onChange={handleChange}
+          value={email}
+          onChange={handleEmailChange}
         />
         {errors.email && <span className="error">{errors.email}</span>}
       </div>
@@ -68,8 +75,8 @@ const RegistrationForm = () => {
           type="password"
           id="password"
           name="password"
-          value={formData.password}
-          onChange={handleChange}
+          value={password}
+          onChange={handlePasswordChange}
         />
         {errors.password && <span className="error">{errors.password}</span>}
       </div>
