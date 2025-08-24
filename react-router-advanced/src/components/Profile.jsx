@@ -1,9 +1,11 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import ProfileDetails from './ProfileDetails';
 import ProfileSettings from './ProfileSettings';
+import useAuth from '../hooks/useAuth';
 
 const Profile = () => {
   const location = useLocation();
+  const { logout } = useAuth();
   
   return (
     <div>
@@ -20,6 +22,9 @@ const Profile = () => {
             <Link to="/profile/settings" className={location.pathname === '/profile/settings' ? 'active' : ''}>
               Settings
             </Link>
+          </li>
+          <li>
+            <button onClick={logout}>Logout</button>
           </li>
         </ul>
       </nav>
